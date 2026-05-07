@@ -194,7 +194,7 @@ class ModifiedSlipperyGridWorld(SlipperyGridWorld):
         for trap_pos in self.original_terminal_traps:
             r, c = self.state_to_row_column(trap_pos)
 
-            directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+            directions = [(0, 1), (0, -1), (1, 0), (-1, 0),(0,0)]
             random.shuffle(directions)
 
             moved = False
