@@ -204,13 +204,13 @@ class ModifiedSlipperyGridWorld(SlipperyGridWorld):
 
                 if self._in_bounds(nr, nc) and not self.is_terminal_state(ns):
                     new_traps.add(ns)
-                    new_trap_rewards[ns] = self.trap_rewards[trap_pos]
+                    new_trap_rewards[ns] = self.original_trap_rewards[trap_pos]
                     moved = True
                     break
 
             if not moved:
                 new_traps.add(trap_pos)
-                new_trap_rewards[trap_pos] = self.trap_rewards[trap_pos]
+                new_trap_rewards[trap_pos] = self.original_trap_rewards[trap_pos]
 
         self.terminal_traps = new_traps
         self.trap_rewards = new_trap_rewards
