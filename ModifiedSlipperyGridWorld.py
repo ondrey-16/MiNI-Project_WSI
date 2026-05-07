@@ -1,3 +1,5 @@
+import random
+
 from helpers.env import SlipperyGridWorld
 from helpers.env import ACTIONS
 
@@ -65,6 +67,9 @@ class ModifiedSlipperyGridWorld(SlipperyGridWorld):
                 self.goal_rewards[state] = reward
         self.goal_rewards[self.main_goal] = self.goal_reward
 
+        self.original_terminal_traps = self.terminal_traps
+        self.original_trap_rewards = self.trap_rewards
+
     def get_transition_distribution(self, s: int, a: int) -> list[tuple[float, int]]:
         """Returns env transition probability distribution for given (s,a) and respective next states (s').
             Because the environment is slippery, attempting one action may lead to several possible next states.
@@ -122,6 +127,8 @@ class ModifiedSlipperyGridWorld(SlipperyGridWorld):
         assert action in ACTIONS, f"Invalid action {action}. Use 0=U,1=R,2=D,3=L."
         self._steps += 1
 
+        self.move_traps()
+
         intended = action
         executed = self._sample_action_with_slip(intended)
 
@@ -160,3 +167,31 @@ class ModifiedSlipperyGridWorld(SlipperyGridWorld):
 
     def is_goal(self, state: int) -> bool:
         return state in self.goals
+
+    def move_traps(self):
+        new_traps = set()
+        new_trap_rewards = {}
+
+        for trap_pos in self.original_terminal_traps:
+            r, c = self.state_to_row_column(trap_pos)
+
+            directions = [(0, 1), (0, -1), (1, 0), (-1, 0)]
+            random.shuffle(directions)
+
+            moved = False
+            for dr, dc in directions:
+                nr, nc = r + dr, c + dc
+                ns = self.row_column_to_state(nr, nc)
+
+                if self._in_bounds(nr, nc) and not self.is_terminal_state(ns):
+                    new_traps.add(ns)
+                    new_trap_rewards[ns] = self.trap_rewards[trap_pos]
+                    moved = True
+                    break
+
+            if not moved:
+                new_traps.add(trap_pos)
+                new_trap_rewards[trap_pos] = self.trap_rewards[trap_pos]
+
+        self.terminal_traps = new_traps
+        self.trap_rewards = new_trap_rewards
