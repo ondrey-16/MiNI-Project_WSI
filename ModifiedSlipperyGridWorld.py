@@ -3,7 +3,7 @@ from helpers.env import ACTIONS
 
 
 class ModifiedSlipperyGridWorld(SlipperyGridWorld):
-    def __init__(self, *args, walls=None, terminal_traps=None, trap_rewards=None, goals=None, goal_rewards=None,**kwargs):
+    def __init__(self, *args, walls=None, terminal_traps=None, trap_rewards=None, additional_goals=None, additional_goal_rewards=None, **kwargs):
         """
         Initialize a modified slippery grid world with walls, traps, and multiple goals.
 
@@ -15,40 +15,26 @@ class ModifiedSlipperyGridWorld(SlipperyGridWorld):
         Args:
             *args: Positional arguments passed to SlipperyGridWorld.__init__
                 (rows, cols, start, goal, slip_prob, step_reward, goal_reward, max_steps, seed)
-            walls (list of tuple, optional): List of (row, col) positions that block movement.
+            walls (list of tuple): List of (row, col) positions that block movement.
                 Agent stays in current position when attempting to move into a wall.
                 Example: [(1, 1), (2, 2), (3, 3)]
-            terminal_traps (list of tuple, optional): List of (row, col) positions for trap states.
+            terminal_traps (list of tuple): List of (row, col) positions for trap states.
                 When agent lands on a trap, episode terminates with negative reward.
                 Must be same length as trap_rewards if provided.
                 Example: [(2, 1), (1, 3)]
-            trap_rewards (list of float, optional): Reward values for each trap in terminal_traps.
+            trap_rewards (list of float): Reward values for each trap in terminal_traps.
                 Index-matched to terminal_traps list (trap_rewards[i] corresponds to terminal_traps[i]).
                 Must be same length as terminal_traps if provided.
                 Example: [-10, -20]  # First trap gives -10, second gives -20
-            goals (list of tuple, optional): List of (row, col) positions for goal states.
+            additional_goals (list of tuple): List of (row, col) positions for goal states.
                 When agent lands on a goal, episode terminates with positive reward.
                 If not provided, uses single goal from parent class.
                 Must be same length as goal_rewards if provided.
                 Example: [(5, 5), (0, 5), (5, 0)]
-            goal_rewards (list of float, optional): Reward values for each goal in goals.
+            additional_goal_rewards (list of float): Reward values for each goal in goals.
                 Index-matched to goals list (goal_rewards[i] corresponds to goals[i]).
                 Must be same length as goals if provided.
                 Example: [100, 30, 50]  # First goal gives 100, second gives 30, third gives 50
-            **kwargs: Additional keyword arguments passed to SlipperyGridWorld.__init__
-
-        Note:
-            - All positions are converted to state indices (row * cols + col) for internal use.
-            - Helper methods is_wall(), is_terminal_trap(), is_goal() check state membership.
-            - Trap and goal rewards are accessed via trap_rewards[state] and goal_rewards[state] dicts.
-            - Walls are checked in get_transition_distribution() and step() to prevent entry.
-            - Terminal states (traps and goals) are checked in is_terminal_state().
-            - Rewards for traps and goals are applied in reward() method.
-
-        Raises:
-            AssertionError: From parent class if invalid grid dimensions or slip probability.
-            ValueError: If trap/terminal_traps or goals/goal_rewards have mismatched lengths
-                       (will crash in zip iteration).
         """
         super().__init__(*args, **kwargs)
         self.walls =  set(
@@ -65,15 +51,19 @@ class ModifiedSlipperyGridWorld(SlipperyGridWorld):
                 state = self.row_column_to_state(r, c)
                 self.trap_rewards[state] = reward
 
+        self.main_goal = self.row_column_to_state(*self.goal_row_column)
+
         self.goals = set(
             self.row_column_to_state(r, c)
-            for r, c in (goals or [])
+            for r, c in (additional_goals or [])
         )
+        self.goals.add(self.main_goal)
         self.goal_rewards = {}
-        if goals is not None and goal_rewards is not None:
-            for (r, c), reward in zip(goals, goal_rewards):
+        if additional_goals is not None and additional_goal_rewards is not None:
+            for (r, c), reward in zip(additional_goals, additional_goal_rewards):
                 state = self.row_column_to_state(r, c)
                 self.goal_rewards[state] = reward
+        self.goal_rewards[self.main_goal] = self.goal_reward
 
     def get_transition_distribution(self, s: int, a: int) -> list[tuple[float, int]]:
         """Returns env transition probability distribution for given (s,a) and respective next states (s').
