@@ -128,7 +128,7 @@ class ModifiedSlipperyGridWorld(SlipperyGridWorld):
         assert action in ACTIONS, f"Invalid action {action}. Use 0=U,1=R,2=D,3=L."
         self._steps += 1
 
-        self.move_traps()
+        # self.move_traps()
 
         intended = action
         executed = self._sample_action_with_slip(intended)
