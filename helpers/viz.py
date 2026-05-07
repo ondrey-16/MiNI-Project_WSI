@@ -97,6 +97,7 @@ def plot_policy(
         ax.text(c, r, ARROWS[a], ha="center", va="center", fontsize=14)
 
     if filename:
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
         fig.savefig(filename, dpi=200, bbox_inches="tight")
     plt.show()
 
@@ -144,6 +145,7 @@ def plot_value_heatmap(
     _draw_functional_cells(ax, env)
 
     if filename:
+        os.makedirs(os.path.dirname(filename), exist_ok=True)
         fig.savefig(filename, dpi=200, bbox_inches="tight")
 
     plt.show()
@@ -194,6 +196,7 @@ def run_to_gif(env: ModifiedSlipperyGridWorld, Q: Optional[np.ndarray]=None, pol
     roll = run_episode(env, Q=Q, policy = policy)
     frames = render_episode_frames(env, roll["trajectory"], out_dir="frames", prefix="ep")
     imgs = [imageio.imread(p) for p in frames]
+    os.makedirs(os.path.dirname(gif_path), exist_ok=True)
     imageio.mimsave(gif_path, imgs, duration=1.0 / fps)
 
 def greedy_policy_from_V(V: np.ndarray, env: ModifiedSlipperyGridWorld, gamma: float):
