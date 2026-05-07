@@ -1,7 +1,8 @@
 import random
-
 from helpers.env import SlipperyGridWorld
 from helpers.env import ACTIONS
+from typing import Optional, Tuple
+
 
 
 class ModifiedSlipperyGridWorld(SlipperyGridWorld):
@@ -167,6 +168,24 @@ class ModifiedSlipperyGridWorld(SlipperyGridWorld):
 
     def is_goal(self, state: int) -> bool:
         return state in self.goals
+
+    def reset(self, start: Optional[Tuple[int, int]] = None) -> int:
+        """Reset environment to start state specified (optional).
+            Resets moving elements positions
+
+        Args:
+            start (Optional[Tuple[int, int]], optional): If not specified,
+            takes start state from environment initialization.
+            Defaults to None.
+
+        Returns:
+            int: Reset agent's state.
+        """
+        self.terminal_traps = self.original_terminal_traps
+        self.trap_rewards = self.original_trap_rewards
+
+        return super().reset(start)
+
 
     def move_traps(self):
         new_traps = set()
