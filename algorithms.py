@@ -50,8 +50,8 @@ def QLearning(env: ModifiedSlipperyGridWorld, epsilon:float, gamma:float, alpha:
         X = env.reset()
         while not env.is_terminal_state(X):
             A = eps_greedy(X)
-            X_prim, R, _, _ = env.step(A)
-            Q[X][A] = Q[X][A] + alpha * (R + gamma * np.max(Q[X_prim]) - Q[X][A])
+            X_prim, R, done, _ = env.step(A)
+            Q[X][A] = Q[X][A] + alpha * (R + gamma *(1-done)* np.max(Q[X_prim]) - Q[X][A])
             X = X_prim
 
     def get_states(state):
@@ -88,7 +88,7 @@ def SARSA(env: ModifiedSlipperyGridWorld, epsilon:float, gamma:float, alpha: flo
         while not env.is_terminal_state(X):
             X_prim, R, done, _ = env.step(A)
             if done:
-                Q[X][A] = alpha * (R - Q[X][A])
+                Q[X][A] += alpha * (R - Q[X][A])
                 break
             A_prim = eps_greedy(X_prim)
             Q[X][A] = Q[X][A] + alpha * (R + gamma * Q[X_prim][A_prim] - Q[X][A])

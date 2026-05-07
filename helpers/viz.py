@@ -52,13 +52,16 @@ def _draw_functional_cells(ax, env: ModifiedSlipperyGridWorld):
         r, c = env.state_to_row_column(s)
         _draw_cell(ax, r, c, "W", facecolor="lightgrey", textcolor="white", alpha=0.7)
 
-    for s in env.terminal_traps:
+    for s in env.original_terminal_traps:
         r, c = env.state_to_row_column(s)
-        _draw_cell(ax, r, c, "T", facecolor="red", textcolor="white", alpha=0.7)
+        rew = env.original_trap_rewards[s]
+        _draw_cell(ax, r, c, rf"$T_{{{rew}}}$", facecolor="red", textcolor="white", alpha=0.7)
 
-    for i, s in enumerate(_ordered_goal_states(env), start=1):
+    # for i, s in enumerate(_ordered_goal_states(env), start=1):
+    for s in env.goals:
         r, c = env.state_to_row_column(s)
-        _draw_cell(ax, r, c,rf"$G_{{{i}}}$", facecolor="lightblue",
+        rew = env.goal_rewards[s]
+        _draw_cell(ax, r, c,rf"$G_{{{rew}}}$", facecolor="gold",
                    textcolor="white", alpha=0.7,)
 
 def plot_policy(
@@ -102,6 +105,8 @@ def plot_value_heatmap(
     V: np.ndarray,
     filename: Optional[str] = None,
     title: str = "State Value",
+    vmin: Optional[float] = None,
+    vmax: Optional[float] = None,
 ) -> None:
     """Produces a heatmap image for V(s).
 
@@ -122,7 +127,13 @@ def plot_value_heatmap(
     cmap.set_bad(color="lightgray")
 
     fig, ax = plt.subplots()
-    im = ax.imshow(V_grid, cmap=cmap)
+
+    # if vmin is None:
+    vmin = np.nanmin(V_grid)
+    # if vmax is None:
+    vmax = np.nanmax(V_grid)
+
+    im = ax.imshow(V_grid, cmap=cmap, vmin=vmin, vmax = vmax)
 
     ax.set_title(title)
     ax.set_xticks([])
