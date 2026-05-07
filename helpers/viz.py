@@ -11,7 +11,7 @@ from ModifiedSlipperyGridWorld import ModifiedSlipperyGridWorld
 
 ARROWS = {0: "↑", 1: "→", 2: "↓", 3: "←"}
 def _base_grid_figure(env: ModifiedSlipperyGridWorld, title: str = ""):
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize = (env.rows,env.cols))
     ax.set_aspect("equal")
     ax.set_xlim(-0.5, env.cols - 0.5)
     ax.set_ylim(env.rows - 0.5, -0.5)
@@ -127,7 +127,7 @@ def plot_value_heatmap(
     cmap = plt.cm.viridis.copy()
     cmap.set_bad(color="lightgray")
 
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize = (env.rows,env.cols))
 
     # if vmin is None:
     vmin = np.nanmin(V_grid)
@@ -196,6 +196,18 @@ def run_to_gif(env: ModifiedSlipperyGridWorld, Q: Optional[np.ndarray]=None, pol
     roll = run_episode(env, Q=Q, policy = policy)
     frames = render_episode_frames(env, roll["trajectory"], out_dir="frames", prefix="ep")
     imgs = [imageio.imread(p) for p in frames]
+    if imgs:
+        target_shape = imgs[0].shape  # Use first frame as reference
+        resized_imgs = []
+        for img in imgs:
+            if img.shape != target_shape:
+                # Resize to match target shape
+                from PIL import Image
+                img_pil = Image.fromarray(img)
+                img_pil = img_pil.resize((target_shape[1], target_shape[0]))
+                img = np.array(img_pil)
+            resized_imgs.append(img)
+        imgs = resized_imgs
     os.makedirs(os.path.dirname(gif_path), exist_ok=True)
     imageio.mimsave(gif_path, imgs, duration=1.0 / fps)
 
