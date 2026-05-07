@@ -126,18 +126,31 @@ def DynaQ(env: ModifiedSlipperyGridWorld, epsilon:float, gamma:float, alpha: flo
 
     for i in range(max_iterations):
         X = env.reset()
+
         while not env.is_terminal_state(X):
             A = eps_greedy(X)
-            X_prim, R, _, _ = env.step(A)
-            Q[X][A] = Q[X][A] + alpha * (R + gamma * np.max(Q[X_prim]) - Q[X][A])
+            X_prim, R, done, _ = env.step(A)
+
+            tmp = R
+            if not done:
+                tmp += gamma * np.max(Q[X_prim])
+
+            Q[X][A] += alpha * (tmp - Q[X][A])
+
+            model[(X, A)] = (R, X_prim, done)
+            model_keys = list(model.keys())
+
+            for _ in range(min(n, len(model_keys))):
+                prev_X, prev_A = random.choice(model_keys)
+                prev_R, prev_X_prim, prev_done = model[(prev_X, prev_A)]
+
+                tmp = prev_R
+                if not prev_done:
+                    tmp += gamma * np.max(Q[prev_X_prim])
+
+                Q[prev_X, prev_A] += alpha * (tmp - Q[prev_X, prev_A])
+
             X = X_prim
-
-            model[(X, A)] = (R, X_prim)
-
-            for j in range(n):
-                prev_X, prev_A = random.choice(list(model.keys()))
-                prev_R, prev_X_prim = model[(prev_X, prev_A)]
-                Q[prev_X][prev_A] = Q[prev_X][prev_A] + alpha * (R + gamma * np.max(Q[prev_X_prim]) - Q[prev_X][prev_A])
 
     def get_states(state):
         return np.max(Q[state])
