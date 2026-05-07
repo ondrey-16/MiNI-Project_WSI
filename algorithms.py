@@ -53,7 +53,6 @@ def QLearning(env: ModifiedSlipperyGridWorld, epsilon:float, gamma:float, alpha:
         while not done:
             A = eps_greedy(X)
             X_prim, R, done, _ = env.step(A)
-            tmp = R
 
             Q[X][A] += + alpha * (R + gamma *(1-done)* np.max(Q[X_prim]) - Q[X][A])
             X = X_prim
@@ -89,11 +88,14 @@ def SARSA(env: ModifiedSlipperyGridWorld, epsilon:float, gamma:float, alpha: flo
     for i in range(max_iterations):
         X = env.reset()
         A = eps_greedy(X)
-        while not env.is_terminal_state(X):
+        done = False
+
+        while not done:
             X_prim, R, done, _ = env.step(A)
             if done:
                 Q[X][A] += alpha * (R - Q[X][A])
                 break
+
             A_prim = eps_greedy(X_prim)
             Q[X][A] = Q[X][A] + alpha * (R + gamma * Q[X_prim][A_prim] - Q[X][A])
             X = X_prim
@@ -130,8 +132,9 @@ def DynaQ(env: ModifiedSlipperyGridWorld, epsilon:float, gamma:float, alpha: flo
 
     for i in range(max_iterations):
         X = env.reset()
+        done = False
 
-        while not env.is_terminal_state(X):
+        while not done:
             A = eps_greedy(X)
             X_prim, R, done, _ = env.step(A)
 
