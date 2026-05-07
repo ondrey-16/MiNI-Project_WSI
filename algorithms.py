@@ -48,10 +48,14 @@ def QLearning(env: ModifiedSlipperyGridWorld, epsilon:float, gamma:float, alpha:
 
     for i in range(max_iterations):
         X = env.reset()
-        while not env.is_terminal_state(X):
+        done = False
+
+        while not done:
             A = eps_greedy(X)
             X_prim, R, done, _ = env.step(A)
-            Q[X][A] = Q[X][A] + alpha * (R + gamma *(1-done)* np.max(Q[X_prim]) - Q[X][A])
+            tmp = R
+
+            Q[X][A] += + alpha * (R + gamma *(1-done)* np.max(Q[X_prim]) - Q[X][A])
             X = X_prim
 
     def get_states(state):

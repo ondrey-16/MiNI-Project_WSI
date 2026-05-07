@@ -312,6 +312,7 @@ def evaluate(
     """
     rng = np.random.default_rng(seed)
     returns, steps, success, traps = [], [], [], []
+    final_states = []
 
     for _ in range(n_episodes):
         ep_seed = int(rng.integers(0, 1_000_000))
