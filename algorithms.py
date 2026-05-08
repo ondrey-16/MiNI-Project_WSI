@@ -104,6 +104,7 @@ def SARSA(env: ModifiedSlipperyGridWorld, epsilon:float, gamma:float, alpha: flo
             X_prim, R, done, _ = env.step(A)
             if done:
                 Q[X][A] += alpha * (R - Q[X][A])
+                total_rewards += R
                 break
 
             A_prim = eps_greedy(X_prim)
