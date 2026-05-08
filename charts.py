@@ -35,7 +35,8 @@ def stability_study(
         env = ModifiedSlipperyGridWorld(**env_config)
 
         for name, algo_func in algorithms.items():
-            V, pi = algo_func(env, **algo_params[name])
+            result = algo_func(env, **algo_params[name])
+            V, pi = result[0], result[1]
             stats = evaluate(env, policy=pi, n_episodes=eval_episodes, seed=seed)
 
             for m in metrics:

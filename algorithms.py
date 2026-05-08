@@ -31,15 +31,17 @@ def ValueIteration(env: ModifiedSlipperyGridWorld, max_number_iterations:int, ga
             break
 
     pi = greedy_policy_from_V(V, env, gamma)
-    return (V,pi)
+    return V, pi
 
-def QLearning(env: ModifiedSlipperyGridWorld, epsilon:float, gamma:float, alpha: float, max_iterations: int) -> Tuple[np.ndarray, np.ndarray]:
+def QLearning(env: ModifiedSlipperyGridWorld, epsilon:float, gamma:float, alpha: float, max_iterations: int) -> Tuple[np.ndarray, np.ndarray, list]:
     env.reset()
     num_states = env.num_states
     num_actions = 4
     num_elems = (num_states, num_actions)
 
     Q = np.zeros(num_elems)
+
+    episode_returns = []
 
     def eps_greedy(state):
         if random.random() < epsilon:
@@ -49,6 +51,7 @@ def QLearning(env: ModifiedSlipperyGridWorld, epsilon:float, gamma:float, alpha:
     for i in range(max_iterations):
         X = env.reset()
         done = False
+        total_rewards = 0
 
         while not done:
             A = eps_greedy(X)
@@ -56,6 +59,9 @@ def QLearning(env: ModifiedSlipperyGridWorld, epsilon:float, gamma:float, alpha:
 
             Q[X][A] += + alpha * (R + gamma *(1-done)* np.max(Q[X_prim]) - Q[X][A])
             X = X_prim
+            total_rewards += R
+
+        episode_returns.append(total_rewards)
 
     def get_states(state):
         return np.max(Q[state])
@@ -71,14 +77,16 @@ def QLearning(env: ModifiedSlipperyGridWorld, epsilon:float, gamma:float, alpha:
     for i in range(num_states):
         pi[i] = greedy_policy(i)
 
-    return (V, pi)
+    return V, pi, episode_returns
 
-def SARSA(env: ModifiedSlipperyGridWorld, epsilon:float, gamma:float, alpha: float, max_iterations: int) -> Tuple[np.ndarray, np.ndarray]:
+def SARSA(env: ModifiedSlipperyGridWorld, epsilon:float, gamma:float, alpha: float, max_iterations: int) -> Tuple[np.ndarray, np.ndarray, list]:
     env.reset()
     num_states = env.num_states
     num_actions = 4
     num_elems = (num_states, num_actions)
     Q = np.zeros(num_elems)
+
+    episode_returns = []
 
     def eps_greedy(state):
         if random.random() < epsilon:
@@ -90,6 +98,8 @@ def SARSA(env: ModifiedSlipperyGridWorld, epsilon:float, gamma:float, alpha: flo
         A = eps_greedy(X)
         done = False
 
+        total_rewards = 0
+
         while not done:
             X_prim, R, done, _ = env.step(A)
             if done:
@@ -100,6 +110,9 @@ def SARSA(env: ModifiedSlipperyGridWorld, epsilon:float, gamma:float, alpha: flo
             Q[X][A] = Q[X][A] + alpha * (R + gamma * Q[X_prim][A_prim] - Q[X][A])
             X = X_prim
             A = A_prim
+            total_rewards += R
+
+        episode_returns.append(total_rewards)
 
     def get_states(state):
         return np.max(Q[state])
@@ -115,15 +128,17 @@ def SARSA(env: ModifiedSlipperyGridWorld, epsilon:float, gamma:float, alpha: flo
     for i in range(num_states):
         pi[i] = get_policy(i)
 
-    return (V, pi)
+    return V, pi, episode_returns
 
-def DynaQ(env: ModifiedSlipperyGridWorld, epsilon:float, gamma:float, alpha: float, max_iterations: int, n: int) -> Tuple[np.ndarray, np.ndarray]:
+def DynaQ(env: ModifiedSlipperyGridWorld, epsilon:float, gamma:float, alpha: float, max_iterations: int, n: int) -> Tuple[np.ndarray, np.ndarray, list]:
     env.reset()
     num_states = env.num_states
     num_actions = 4
     num_elems = (num_states, num_actions)
     Q = np.zeros(num_elems)
     model = {}
+
+    episode_returns = []
 
     def eps_greedy(state):
         if random.random() < epsilon:
@@ -133,6 +148,8 @@ def DynaQ(env: ModifiedSlipperyGridWorld, epsilon:float, gamma:float, alpha: flo
     for i in range(max_iterations):
         X = env.reset()
         done = False
+
+        total_rewards = 0
 
         while not done:
             A = eps_greedy(X)
@@ -158,6 +175,9 @@ def DynaQ(env: ModifiedSlipperyGridWorld, epsilon:float, gamma:float, alpha: flo
                 Q[prev_X, prev_A] += alpha * (tmp - Q[prev_X, prev_A])
 
             X = X_prim
+            total_rewards += R
+
+        episode_returns.append(total_rewards)
 
     def get_states(state):
         return np.max(Q[state])
@@ -173,4 +193,4 @@ def DynaQ(env: ModifiedSlipperyGridWorld, epsilon:float, gamma:float, alpha: flo
     for i in range(num_states):
         pi[i] = greedy_policy(i)
 
-    return (V, pi)
+    return V, pi, episode_returns
